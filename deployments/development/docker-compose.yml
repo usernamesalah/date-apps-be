@@ -14,7 +14,7 @@ services:
       - ../../:/app
       - go_dir:/go
     command: |
-      deployments/development/start.sh
+      ./deployments/development/start.sh
     environment:
       APP_PORT: 0.0.0.0:8080
       CORS_ORIGINS: "http://localhost:3000"
