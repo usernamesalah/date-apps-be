@@ -83,6 +83,7 @@ func (p *premiumConfigHandler) GetPackageByUID(c echo.Context) error {
 // @Tags premium
 // @Accept json
 // @Produce json
+// @Param authorization header string true "bearer token"
 // @Param userPurchase body request.UserPurchase true "User purchase request"
 // @Success 200 {object} map[string]string "Successfully purchased the package"
 // @Router /packages/purchase [post]

@@ -37,6 +37,8 @@ CREATE TABLE user_premium (
     `created_at` datetime NOT NULL DEFAULT current_timestamp(),
     `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
     PRIMARY KEY (`id`),
+    FOREIGN KEY (`user_uid`) REFERENCES users(`uid`),
+    FOREIGN KEY (`premium_config_uid`) REFERENCES premium_config(`uid`),
     UNIQUE KEY `user_premium_uid_unique` (`uid`),
     INDEX `user_premium_user_uid_config_uid_start_end_at_idx` (`user_uid` ,`premium_config_uid`,`started_at`, `ended_at`)
 );

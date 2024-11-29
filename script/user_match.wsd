@@ -1,0 +1,24 @@
+@startuml
+participant Client
+participant UserMatchHandler
+participant UserMatchUsecase
+participant API
+
+Client -> UserMatchHandler: CreateMatch(match details)
+UserMatchHandler -> API: Bind request
+UserMatchHandler -> UserMatchUsecase: GetUserMatchTodayByUserUIDAndMatchUID(userUID, req.MatchUID)
+UserMatchUsecase --> UserMatchHandler: userMatchExist
+alt Match exists
+    UserMatchHandler --> API: Render error response
+else Match does not exist
+    UserMatchHandler -> UserMatchUsecase: CreateUserMatch(userMatch)
+    UserMatchUsecase --> UserMatchHandler: success
+    UserMatchHandler --> Client: Response success
+end
+
+Client -> UserMatchHandler: GetUserMatches()
+UserMatchHandler -> API: Parse pagination
+UserMatchHandler -> UserMatchUsecase: GetAvailableUsers(userUID, page, limit)
+UserMatchUsecase --> UserMatchHandler: users, quotaLeft
+UserMatchHandler --> Client: Response with user matches and quota
+@enduml

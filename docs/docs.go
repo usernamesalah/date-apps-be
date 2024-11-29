@@ -226,6 +226,13 @@ var doc = `{
                 "summary": "Purchase a premium package",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "bearer token",
+                        "name": "authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "description": "User purchase request",
                         "name": "userPurchase",
                         "in": "body",

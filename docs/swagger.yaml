@@ -226,6 +226,11 @@ paths:
       - application/json
       description: Purchases a premium package for the user
       parameters:
+      - description: bearer token
+        in: header
+        name: authorization
+        required: true
+        type: string
       - description: User purchase request
         in: body
         name: userPurchase

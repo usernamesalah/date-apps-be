@@ -36,7 +36,7 @@ func (u *userMatchUsecase) CreateUserMatch(ctx context.Context, userMatch *model
 	defer derrors.Wrap(&err, "CreateUserMatch(%q)", userMatch.UserUID)
 
 	maxMatchPerDay := constant.MaxMatchPerDay
-	// TODO: validate user premium package here
+
 	userPackage, err := u.userUsecase.GetUserPackage(ctx, userMatch.UserUID)
 	if err != nil {
 		return
@@ -77,22 +77,42 @@ func (u *userMatchUsecase) GetUserMatches(ctx context.Context, d dto.GetUserMatc
 
 // GetAvailableUsers retrieves a list of users that the current user has not matched with today
 func (u *userMatchUsecase) GetAvailableUsers(ctx context.Context, userUID string, page, limit uint64) (users []*model.User, quotaLeft int, err error) {
-	// get total matches today for user
-	total, err := u.repo.GetTotalUserMatchToday(ctx, userUID)
+	userPackage, err := u.userUsecase.GetUserPackage(ctx, userUID)
 	if err != nil {
 		return
 	}
 
-	if total >= constant.MaxMatchPerDay {
+	total, err := u.repo.GetTotalUserMatchToday(ctx, userUID)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	maxMatchPerDay := constant.MaxMatchPerDay
+	quotaLeft = maxMatchPerDay - total
+
+	if userPackage != nil && !userPackage.IsExpiredPackage() {
+		if userPackage.Quota == 0 {
+			// Unlimited matches for premium users with quota=0
+			users, err = u.repo.GetAvailableUsers(ctx, userUID, page, limit)
+			if err != nil {
+				return
+			}
+			return users, 9999, nil
+		}
+
+		maxMatchPerDay = int(userPackage.Quota)
+		quotaLeft = maxMatchPerDay - total
+	}
+
+	if total >= maxMatchPerDay {
 		err = derrors.New(derrors.Forbidden, "Quota match per day reached")
-		return
+		return nil, 0, err
 	}
 
 	users, err = u.repo.GetAvailableUsers(ctx, userUID, page, limit)
 	if err != nil {
 		return
 	}
-	quotaLeft = constant.MaxMatchPerDay - total
 	return
 }
 

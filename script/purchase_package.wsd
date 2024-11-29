@@ -1,0 +1,18 @@
+@startuml
+participant Client
+participant PremiumConfigHandler
+participant PremiumConfigUsecase
+participant API
+
+Client -> PremiumConfigHandler: GetPackages()
+PremiumConfigHandler -> API: Parse pagination
+PremiumConfigHandler -> PremiumConfigUsecase: GetPremiumConfigs(page, limit)
+PremiumConfigUsecase --> PremiumConfigHandler: configs
+PremiumConfigHandler --> Client: Response with premium packages
+
+Client -> PremiumConfigHandler: PurchasePackage(userPurchase details)
+PremiumConfigHandler -> API: Bind request
+PremiumConfigHandler -> PremiumConfigUsecase: PurchasePackage(userUID, premiumConfigUID)
+PremiumConfigUsecase --> PremiumConfigHandler: success
+PremiumConfigHandler --> Client: Response success
+@enduml

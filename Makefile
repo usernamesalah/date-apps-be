@@ -11,8 +11,10 @@ dev-migrate:
 	@docker exec date-apps-be-development ./docker/development/db-migration.sh $(args)
 
 mock:
-	docker run --rm -v $(shell pwd):/src -w /src vektra/mockery --dir internal --output mocks/internal_ --all --keeptree
-	docker run --rm -v $(shell pwd):/src -w /src vektra/mockery --dir libraries --output mocks/libraries --all --keeptree
+	@./scripts/generate_mocks.sh
+
+mock-win:
+	@powershell ./scripts/generate_mocks.sh
 
 test-report: 
 	go test ./internal/... -v -coverprofile cover.out

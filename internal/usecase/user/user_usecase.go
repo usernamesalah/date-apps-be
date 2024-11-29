@@ -71,6 +71,18 @@ func (u *userUsecase) GetUser(ctx context.Context, userUID string) (user *model.
 	defer derrors.Wrap(&err, "GetUser(%q)", userUID)
 
 	user, err = u.userRepo.GetUserByUID(ctx, userUID)
+	if err != nil {
+		return
+	}
+
+	userPackage, err := u.userPackage.GetUserPackage(ctx, userUID)
+	if err != nil {
+		return
+	}
+
+	if userPackage != nil {
+		user.IsPremium = true
+	}
 	return
 }
 

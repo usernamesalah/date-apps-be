@@ -1,0 +1,41 @@
+@startuml
+participant Client
+participant UserHandler
+participant UserUsecase
+participant AuthService
+participant API
+
+Client -> UserHandler: Register(user details)
+UserHandler -> API: Bind request
+UserHandler -> UserUsecase: GetUserByEmailOrPhoneNumber(email, phoneNumber)
+UserUsecase --> UserHandler: userExist
+alt User exists
+    UserHandler --> API: Render error response
+else User does not exist
+    UserHandler -> UserUsecase: CreateUser(user details)
+    UserUsecase --> UserHandler: token
+    UserHandler --> Client: Response with token
+end
+
+Client -> UserHandler: Login(user details)
+UserHandler -> API: Bind request
+UserHandler -> UserUsecase: GetUserByEmailOrPhoneNumber(email, phoneNumber)
+UserUsecase --> UserHandler: user
+alt User not found
+    UserHandler --> API: Render error response
+else User found
+    UserHandler -> AuthService: GenerateToken(user.UID)
+    AuthService --> UserHandler: token
+    UserHandler --> Client: Response with token
+end
+
+Client -> UserHandler: GetUserProfile()
+UserHandler -> UserUsecase: GetUser(userUID)
+UserUsecase --> UserHandler: user
+UserHandler --> Client: Response with user profile
+
+Client -> UserHandler: GetMyPackage()
+UserHandler -> UserUsecase: GetUserPackage(userUID)
+UserUsecase --> UserHandler: userPackage
+UserHandler --> Client: Response with user package
+@enduml
