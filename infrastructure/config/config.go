@@ -85,6 +85,7 @@ func Init() {
 
 	appConfig.JWTRS256PrivateKey = jwtPrivateKey
 	appConfig.JWTRS256PubKey = jwtPubKey
+	appConfig.JWTExpiration = cfg.JWTExpiration
 
 	initDB(&cfg)
 }

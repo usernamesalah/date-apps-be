@@ -2,6 +2,7 @@ package usermatchrepository
 
 import (
 	"context"
+	"database/sql"
 	"date-apps-be/internal/model"
 	repository "date-apps-be/internal/repository/common"
 	"date-apps-be/internal/usecase/user_match/dto"
@@ -14,6 +15,7 @@ type UserMatchRepository interface {
 	GetUserMatches(ctx context.Context, d dto.GetUserMatches) (userMatches []*model.UserMatch, err error)
 	GetTotalUserMatchToday(ctx context.Context, userUID string) (total int, err error)
 	GetAvailableUsers(ctx context.Context, userUID string, page, limit uint64) (users []*model.User, err error)
+	GetUserMatchTodayByUserUIDAndMatchUID(ctx context.Context, userUID, matchUID string) (userMatch *model.UserMatch, err error)
 }
 
 type userMatchRepository struct {
@@ -80,7 +82,7 @@ func (u *userMatchRepository) CreateUserMatch(ctx context.Context, userMatch *mo
 	query := `INSERT INTO user_matches (user_uid, match_uid, match_type) VALUES (?, ?, ?)`
 	args := []interface{}{
 		userMatch.UserUID,
-		userMatch.Match.UID,
+		userMatch.MatchUID,
 		userMatch.MatchType,
 	}
 
@@ -96,8 +98,10 @@ func (u *userMatchRepository) CreateUserMatch(ctx context.Context, userMatch *mo
 func (u *userMatchRepository) GetAvailableUsers(ctx context.Context, userUID string, page, limit uint64) (users []*model.User, err error) {
 	defer derrors.Wrap(&err, "GetAvailableUsers(%q)", userUID)
 
-	query := `SELECT u.uid, u.name FROM users u
-			WHERE u.uid NOT IN (
+	query := `SELECT u.uid, u.name, IF(up.uid IS NOT NULL, TRUE, FALSE) AS is_premium
+			FROM users u
+			LEFT JOIN user_premium up ON u.uid = up.user_uid AND up.ended_at > NOW()
+			WHERE u.uid != ? AND u.uid NOT IN (
 				SELECT match_uid FROM user_matches
 				WHERE user_uid = ? AND DATE(created_at) = CURDATE()
 			)
@@ -105,6 +109,7 @@ func (u *userMatchRepository) GetAvailableUsers(ctx context.Context, userUID str
 			LIMIT ?,?`
 
 	args := []interface{}{
+		userUID,
 		userUID,
 		u.GetOffset(page, limit), limit,
 	}
@@ -116,10 +121,11 @@ func (u *userMatchRepository) GetAvailableUsers(ctx context.Context, userUID str
 		err = derrors.HandleSQLError(err, "QueryContext")
 		return
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		user := &model.User{}
-		err = rows.Scan(&user.UID, &user.Name)
+		err = rows.Scan(&user.UID, &user.Name, &user.IsPremium)
 		if err != nil {
 			return nil, err
 		}
@@ -143,4 +149,28 @@ func (u *userMatchRepository) GetTotalUserMatchToday(ctx context.Context, userUI
 	}
 
 	return total, nil
+}
+
+func (u *userMatchRepository) GetUserMatchTodayByUserUIDAndMatchUID(ctx context.Context, userUID, matchUID string) (userMatch *model.UserMatch, err error) {
+	defer derrors.Wrap(&err, "GetUserMatchTodayByUserUIDAndMatchUID(%q, %q)", userUID, matchUID)
+
+	query := `SELECT user_uid, match_uid, match_type, created_at FROM user_matches 
+			WHERE user_uid = ? AND match_uid = ? AND DATE(created_at) = CURDATE()`
+
+	userMatch = &model.UserMatch{}
+	args := []interface{}{
+		userUID,
+		matchUID,
+	}
+
+	err = u.Query(ctx, query, u.getDest(userMatch), args)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, derrors.HandleSQLError(err, "u.Query")
+	}
+
+	return userMatch, nil
 }

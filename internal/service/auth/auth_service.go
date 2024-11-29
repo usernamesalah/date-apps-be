@@ -5,6 +5,7 @@ import (
 	"date-apps-be/infrastructure/config"
 	"date-apps-be/internal/model"
 	"date-apps-be/pkg/derrors"
+	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -29,7 +30,9 @@ func NewAuthService(conf *config.Config) AuthService {
 }
 
 func (a *authService) newJWTClaims(uid string) *model.JWTClaims {
+	fmt.Println(a.expiration)
 	expirationTime := time.Now().Add(time.Duration(a.expiration) * time.Minute)
+	fmt.Println("expirationTime ", expirationTime)
 	claims := &model.JWTClaims{
 		UserUID: uid,
 		RegisteredClaims: jwt.RegisteredClaims{

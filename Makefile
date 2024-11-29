@@ -1,3 +1,5 @@
+API_DOCS_PATH = docs/
+
 .PHONY: dev
 dev:
 	@echo "> Run Date API Service for Development with default config ..."
@@ -18,3 +20,7 @@ test-report:
 
 test:
 	go test ./internal/... -v
+
+gen-swagger:
+	@echo "Updating API documentation..."
+	@swag init -o ${API_DOCS_PATH} -g cmd/webservice/main.go

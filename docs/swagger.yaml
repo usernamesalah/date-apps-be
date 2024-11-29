@@ -1,0 +1,316 @@
+basePath: /v1
+definitions:
+  model.PremiumConfig:
+    properties:
+      description:
+        type: string
+      expired_day:
+        type: integer
+      is_active:
+        type: boolean
+      name:
+        type: string
+      price:
+        type: integer
+      quota:
+        type: integer
+      uid:
+        type: string
+    type: object
+  request.CreateMatch:
+    properties:
+      match_type:
+        type: string
+      match_uid:
+        type: string
+    required:
+    - match_type
+    - match_uid
+    type: object
+  request.UserLogin:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+      phone_number:
+        type: string
+    type: object
+  request.UserPurchase:
+    properties:
+      premium_config_uid:
+        type: string
+    required:
+    - premium_config_uid
+    type: object
+  request.UserRegister:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      phone_number:
+        type: string
+    type: object
+  response.User:
+    properties:
+      name:
+        type: string
+      user_uid:
+        type: string
+    type: object
+  response.UserMatchResponse:
+    properties:
+      quota_left:
+        type: integer
+      users:
+        items:
+          $ref: '#/definitions/response.User'
+        type: array
+    type: object
+info:
+  contact:
+    email: no-reply@date-apps.com
+    name: Date Apps
+  description: API documentation for dating apps backend
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: Api Documentation for dating apps backend
+  version: "0.1"
+paths:
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user and return a JWT token
+      operationId: login-user
+      parameters:
+      - description: User login details
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/request.UserLogin'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Login user
+      tags:
+      - auth
+  /matches:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Page size
+        in: query
+        name: limit
+        type: integer
+      - description: bearer token
+        in: header
+        name: authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of available users and remaining quota
+          schema:
+            $ref: '#/definitions/response.UserMatchResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get user matches
+      tags:
+      - UserMatch
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: bearer token
+        in: header
+        name: authorization
+        required: true
+        type: string
+      - description: Create Match Request
+        in: body
+        name: req
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateMatch'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Success Match with that Person
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a user match
+      tags:
+      - UserMatch
+  /packages:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a list of available premium packages with pagination
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Number of items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of premium packages
+          schema:
+            items:
+              $ref: '#/definitions/model.PremiumConfig'
+            type: array
+      summary: Get available premium packages
+      tags:
+      - premium
+  /packages/{uid}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a premium package by its UID
+      parameters:
+      - description: Package UID
+        in: path
+        name: uid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Premium package details
+          schema:
+            $ref: '#/definitions/model.PremiumConfig'
+      summary: Get premium package by UID
+      tags:
+      - premium
+  /packages/purchase:
+    post:
+      consumes:
+      - application/json
+      description: Purchases a premium package for the user
+      parameters:
+      - description: User purchase request
+        in: body
+        name: userPurchase
+        required: true
+        schema:
+          $ref: '#/definitions/request.UserPurchase'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully purchased the package
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Purchase a premium package
+      tags:
+      - premium
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user
+      operationId: register-user
+      parameters:
+      - description: User registration details
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/request.UserRegister'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register user
+      tags:
+      - auth
+  /users/package:
+    get:
+      description: Get user package information
+      operationId: get-user-package
+      parameters:
+      - description: bearer token
+        in: header
+        name: authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get user package
+      tags:
+      - users
+  /users/profile:
+    get:
+      description: Get user profile
+      operationId: get-user-uid
+      parameters:
+      - description: bearer token
+        in: header
+        name: authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get user profile
+      tags:
+      - users
+swagger: "2.0"

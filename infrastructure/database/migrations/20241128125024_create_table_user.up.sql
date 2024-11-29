@@ -10,5 +10,5 @@ CREATE TABLE `users` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `user_UID` (`uid`),
   UNIQUE KEY `user_email_unique` (`email`),
-  INDEX `user_login_idx` (email, phone_number, password);
-)
+  INDEX `user_login_idx` (email, phone_number, password)
+);

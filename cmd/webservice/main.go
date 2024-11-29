@@ -21,6 +21,17 @@ import (
 	"go.uber.org/zap"
 )
 
+// @title Api Documentation for dating apps backend
+// @version 0.1
+// @description API documentation for dating apps backend
+
+// @contact.name Date Apps
+// @contact.email no-reply@date-apps.com
+
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @BasePath /v1
 func main() {
 
 	// Load configuration

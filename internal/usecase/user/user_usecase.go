@@ -4,6 +4,7 @@ import (
 	"context"
 	"date-apps-be/internal/model"
 	userrepo "date-apps-be/internal/repository/user"
+	userpackagerepo "date-apps-be/internal/repository/user_premium"
 	authservice "date-apps-be/internal/service/auth"
 	"date-apps-be/internal/usecase/user/dto"
 	"date-apps-be/pkg/derrors"
@@ -17,18 +18,21 @@ type (
 		CreateUser(ctx context.Context, user *dto.CreateUser) (token string, err error)
 		GetUser(ctx context.Context, userUID string) (user *model.User, err error)
 		GetUserByEmailOrPhoneNumber(ctx context.Context, email, phoneNumber string) (user *model.User, err error)
+		GetUserPackage(ctx context.Context, userUID string) (userPackage *model.UserPackage, err error)
 	}
 
 	userUsecase struct {
-		userRepo    userrepo.UserRepository
 		authService authservice.AuthService
+		userRepo    userrepo.UserRepository
+		userPackage userpackagerepo.UserPremiumRepository
 	}
 )
 
-func NewUserUsecase(userRepo userrepo.UserRepository, authService authservice.AuthService) UserUsecase {
+func NewUserUsecase(userRepo userrepo.UserRepository, authService authservice.AuthService, userPackage userpackagerepo.UserPremiumRepository) UserUsecase {
 	return &userUsecase{
 		userRepo:    userRepo,
 		authService: authService,
+		userPackage: userPackage,
 	}
 }
 
@@ -45,8 +49,8 @@ func (u *userUsecase) CreateUser(ctx context.Context, user *dto.CreateUser) (tok
 	userData := &model.User{
 		UID:         uid,
 		Name:        user.Name,
-		Email:       user.Email,
-		PhoneNumber: user.PhoneNumber,
+		Email:       &user.Email,
+		PhoneNumber: &user.PhoneNumber,
 		Password:    string(hashedPassword),
 	}
 
@@ -74,5 +78,11 @@ func (u *userUsecase) GetUserByEmailOrPhoneNumber(ctx context.Context, email, ph
 	defer derrors.Wrap(&err, "GetUserByEmailOrPhoneNumber(%q , %q)", email, phoneNumber)
 
 	user, err = u.userRepo.GetUserByEmailOrPhoneNumber(ctx, email, phoneNumber)
+	return
+}
+
+func (u *userUsecase) GetUserPackage(ctx context.Context, userUID string) (userPackage *model.UserPackage, err error) {
+	defer derrors.Wrap(&err, "GetUserPackage(%q)", userUID)
+	userPackage, err = u.userPackage.GetUserPackage(ctx, userUID)
 	return
 }

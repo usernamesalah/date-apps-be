@@ -6,6 +6,10 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+
+	_ "date-apps-be/docs"
+
+	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
 func Init(e *echo.Echo, hc *container.HandlerComponent, sc *container.SharedComponent) {
@@ -13,6 +17,10 @@ func Init(e *echo.Echo, hc *container.HandlerComponent, sc *container.SharedComp
 		"/v1/*": "/$1",
 	}))
 
+	// Utility endpoints
+	e.GET("/docs/index.html", echoSwagger.WrapHandler)
+	e.GET("/docs/doc.json", echoSwagger.WrapHandler)
+	e.GET("/docs/*", echoSwagger.WrapHandler)
 	e.GET("/ping", ping)
 	publicRouter(e, hc)
 

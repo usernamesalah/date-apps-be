@@ -6,6 +6,7 @@ import (
 	"date-apps-be/internal/model"
 	repository "date-apps-be/internal/repository/common"
 	"date-apps-be/pkg/derrors"
+	"strings"
 )
 
 type (
@@ -36,8 +37,8 @@ func (r *userRepository) CreateUser(ctx context.Context, tx *sql.Tx, user *model
 	args := []interface{}{
 		user.UID,
 		user.Name,
-		r.NewNullString(&user.Email),
-		r.NewNullString(&user.PhoneNumber),
+		r.NewNullString(user.Email),
+		r.NewNullString(user.PhoneNumber),
 		user.Password,
 	}
 
@@ -80,7 +81,7 @@ func (r *userRepository) GetUserByUID(ctx context.Context, uid string) (user *mo
 func (r *userRepository) GetUserByEmailOrPhoneNumber(ctx context.Context, email, phoneNumber string) (user *model.User, err error) {
 	defer derrors.Wrap(&err, "GetUserByEmailOrPhoneNumber(%q, %q)", email, phoneNumber)
 
-	query := `SELECT uid, name, email, phone_number, password FROM users WHERE email = ? OR phone_number = ?`
+	query := `SELECT uid, name, email, phone_number, password FROM users WHERE`
 	user = &model.User{}
 	dest := []interface{}{
 		&user.UID,
@@ -90,10 +91,20 @@ func (r *userRepository) GetUserByEmailOrPhoneNumber(ctx context.Context, email,
 		&user.Password,
 	}
 
-	args := []interface{}{
-		email,
-		phoneNumber,
+	args := []interface{}{}
+	whereFilter := []string{}
+
+	if email != "" {
+		whereFilter = append(whereFilter, "email = ?")
+		args = append(args, email)
 	}
+
+	if phoneNumber != "" {
+		whereFilter = append(whereFilter, "phone_number = ?")
+		args = append(args, phoneNumber)
+	}
+
+	query += " " + strings.Join(whereFilter, " OR ")
 
 	err = r.Query(ctx, query, dest, args)
 	if err != nil {
