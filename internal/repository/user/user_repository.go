@@ -31,7 +31,7 @@ func NewUserRepository(store repository.Repository) UserRepository {
 }
 
 func (r *userRepository) CreateUser(ctx context.Context, tx *sql.Tx, user *model.User) (id int64, err error) {
-	defer derrors.Wrap(&err, "CreateUser(%q)", user.Email)
+	defer derrors.Wrap(&err, "CreateUser(%q)", user.UID)
 
 	query := `INSERT INTO users (uid, name, email, phone_number, password) VALUES (?, ?, ?, ?, ?)`
 	args := []interface{}{
