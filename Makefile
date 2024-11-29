@@ -14,7 +14,7 @@ mock:
 	@./scripts/generate_mocks.sh
 
 mock-win:
-	@powershell ./scripts/generate_mocks.sh
+	@powershell scripts/generate_mocks.sh
 
 test-report: 
 	go test ./internal/... -v -coverprofile cover.out

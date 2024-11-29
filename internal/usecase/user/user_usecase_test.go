@@ -93,6 +93,7 @@ func TestGetUser(t *testing.T) {
 			},
 			expectations: func(params params) {
 				mc.UserRepository.On("GetUserByUID", mock.Anything, params.UserUID).Return(params.Result, nil)
+				mc.UserPremiumRepository.On("GetUserPackage", mock.Anything, params.UserUID).Return(params.UserPackageResult, nil)
 			},
 			results: func(user *model.User, err error) {
 				assert.Nil(t, err)

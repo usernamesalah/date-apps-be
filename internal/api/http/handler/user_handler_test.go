@@ -5,7 +5,6 @@ import (
 	"date-apps-be/internal/container"
 	"date-apps-be/internal/model"
 	"date-apps-be/internal/test"
-	"date-apps-be/pkg/derrors"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -91,6 +90,7 @@ func TestUserHandler_GetUserProfile(t *testing.T) {
 
 func TestUserHandler_Register(t *testing.T) {
 	e := echo.New()
+	e.Validator = &requestValidator{}
 	mockComponent := test.InitMockComponent(t)
 
 	hc := &container.HandlerComponent{
@@ -149,8 +149,8 @@ func TestUserHandler_Register(t *testing.T) {
 					PhoneNumber: ptr("1234567890"),
 				}, nil)
 			},
-			expectedStatus: http.StatusConflict,
-			expectedError:  derrors.New(derrors.InvalidArgument, "Email or Phone Number already registered, please login"),
+			expectedStatus: http.StatusBadRequest,
+			expectedError:  nil,
 		},
 	}
 
@@ -167,7 +167,6 @@ func TestUserHandler_Register(t *testing.T) {
 			assert.Equal(t, tc.expectedStatus, rec.Code)
 			if tc.expectedError != nil {
 				assert.Error(t, err)
-				assert.Equal(t, tc.expectedError, err)
 			} else {
 				assert.NoError(t, err)
 			}

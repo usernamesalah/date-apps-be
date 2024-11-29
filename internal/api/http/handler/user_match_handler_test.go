@@ -93,6 +93,7 @@ func TestUserMatchHandler_GetUserMatches(t *testing.T) {
 func TestUserMatchHandler_CreateMatch(t *testing.T) {
 	// Setup
 	e := echo.New()
+	e.Validator = &requestValidator{}
 	mockComponent := test.InitMockComponent(t)
 
 	hc := &container.HandlerComponent{
